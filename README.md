@@ -1,4 +1,4 @@
-# Middle Child Studio
+# Middle Child Studio v1.1 MVP
 
 Runnable Next.js scaffold for the internal songwriting studio.
 
