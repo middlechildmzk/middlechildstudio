@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Middle Child Audio Forensics Lab</title>
+  <meta name="description" content="Local-first stem and mix forensic analysis for Middle Child production QC." />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">MIDDLE CHILD STUDIO · LOCAL-FIRST</div>
+        <h1>Audio Forensics Lab <span class="version">V0</span></h1>
+        <p class="subhead">Stem-aware production diagnostics, timestamp evidence, Middle Child baseline comparison, and Ableton before/after QC. Audio never leaves your browser.</p>
+      </div>
+      <div class="top-actions">
+        <button id="exportReportBtn" class="btn ghost" disabled>Export JSON report</button>
+        <button id="clearBtn" class="btn danger">Clear session</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero-grid">
+        <div class="panel upload-panel">
+          <div class="panel-kicker">01 · INGEST</div>
+          <h2>Drop locked mixes + raw stems</h2>
+          <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload audio files">
+            <input id="fileInput" type="file" accept="audio/*,.wav,.flac,.aiff,.aif,.mp3,.m4a,.aac,.ogg,.opus" multiple hidden />
+            <div class="drop-icon">⌁</div>
+            <strong>Drop audio here</strong>
+            <span>or click to choose files</span>
+            <small>WAV / AIFF / FLAC / MP3 / M4A / AAC / OGG / Opus · analyzed locally</small>
+          </div>
+          <div class="privacy-note"><span>●</span> No uploads. No cloud processing. Source bytes stay on this device.</div>
+        </div>
+
+        <div class="panel thesis-panel">
+          <div class="panel-kicker">SYSTEM THESIS</div>
+          <h2>Evidence, not a fake “AI %”</h2>
+          <p>The lab separates <b>forensic observations</b> from <b>production-QC heuristics</b>. Deep sub, sidechain breathing, dark tone, and lo-fi texture are not treated as defects just because they are unusual.</p>
+          <div class="mini-grid">
+            <div><span>Native-rate DSP</span><b>Spectral · phase · dynamics</b></div>
+            <div><span>Stem-aware</span><b>Mix · raw stem · Ableton delta</b></div>
+            <div><span>MC baseline</span><b>Your sound, not generic lo-fi</b></div>
+            <div><span>Uncertainty</span><b>Attention flags, not verdicts</b></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="stat-strip" aria-label="Session summary">
+        <div class="stat"><span>FILES</span><b id="statFiles">0</b></div>
+        <div class="stat"><span>ANALYZED</span><b id="statAnalyzed">0</b></div>
+        <div class="stat"><span>RAW STEMS</span><b id="statStems">0</b></div>
+        <div class="stat"><span>MC BASELINE</span><b id="statBaseline">Not set</b></div>
+        <div class="stat"><span>PROCESSING</span><b id="statProcessing">Idle</b></div>
+      </section>
+
+      <section class="workspace-grid">
+        <aside class="panel files-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">02 · PROJECT</div>
+              <h2>Files</h2>
+            </div>
+            <button id="analyzeAllBtn" class="btn primary" disabled>Analyze all</button>
+          </div>
+          <div id="fileList" class="file-list empty-state">
+            <div class="empty-icon">◌</div>
+            <p>Add a locked mix and its Suno-exported stems to begin.</p>
+          </div>
+        </aside>
+
+        <section class="panel inspector-panel">
+          <div class="panel-head">
+            <div>
+              <div class="panel-kicker">03 · FORENSICS</div>
+              <h2 id="inspectorTitle">Select an analyzed file</h2>
+            </div>
+            <div id="confidencePill" class="pill muted">No evidence yet</div>
+          </div>
+
+          <div id="inspectorEmpty" class="inspector-empty">
+            <div class="scope-ring"><span>DSP</span><span>STEM</span><span>MC</span></div>
+            <p>Analysis will show measurable signal behavior and production attention points. It will not claim to reproduce a proprietary platform detector.</p>
+          </div>
+
+          <div id="inspectorContent" class="hidden">
+            <div class="audio-row">
+              <audio id="audioPlayer" controls preload="metadata"></audio>
+              <div class="audio-meta" id="audioMeta"></div>
+            </div>
+
+            <div class="canvas-card">
+              <div class="canvas-head"><span>Waveform + 5s attention timeline</span><small>click timeline to seek</small></div>
+              <canvas id="waveCanvas" width="1200" height="190"></canvas>
+            </div>
+
+            <div class="metric-grid" id="metricGrid"></div>
+
+            <div class="split-grid">
+              <div class="canvas-card">
+                <div class="canvas-head"><span>Frequency balance</span><small>average energy by band</small></div>
+                <canvas id="bandCanvas" width="600" height="260"></canvas>
+              </div>
+              <div class="evidence-card">
+                <div class="canvas-head"><span>Evidence drawer</span><small>timestamped inspection points</small></div>
+                <div id="hotspotList" class="hotspot-list"></div>
+              </div>
+            </div>
+
+            <div class="panel-subsection">
+              <div class="subsection-head">
+                <div>
+                  <span class="panel-kicker">MIDDLE CHILD BASELINE</span>
+                  <h3>Intentional sound vs technical outlier</h3>
+                </div>
+                <button id="addBaselineBtn" class="btn ghost">Add this file to baseline</button>
+              </div>
+              <div id="baselineComparison" class="baseline-comparison"></div>
+            </div>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel compare-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">04 · ABLETON DELTA</div>
+            <h2>Before / after comparison</h2>
+          </div>
+          <button id="compareBtn" class="btn primary" disabled>Compare selected</button>
+        </div>
+        <p class="section-copy">Select exactly two analyzed files in the file list — for example a raw Suno bass stem and your Ableton rebuild, or the locked mix and final master.</p>
+        <div id="compareOutput" class="compare-output empty-compare">No comparison yet.</div>
+      </section>
+
+      <section class="panel methodology-panel">
+        <div class="panel-kicker">WHAT V0 ACTUALLY MEASURES</div>
+        <div class="method-grid">
+          <div><b>Spectral structure</b><span>Band balance, centroid, rolloff, flatness, narrowband residual peaks.</span></div>
+          <div><b>Dynamics / transients</b><span>RMS, crest factor, onset density, envelope regularity.</span></div>
+          <div><b>Stereo / phase</b><span>Full-band correlation and low-frequency mono compatibility.</span></div>
+          <div><b>Temporal behavior</b><span>5-second fingerprints, repetition/self-similarity, hotspot localization.</span></div>
+          <div><b>Middle Child profile</b><span>Sub/bass/low-mid balance, darkness, pump and width compared with your own references.</span></div>
+          <div><b>Coming next</b><span>SONICS 120s learned baseline, raw-stem contribution engine, calibration benchmark harness.</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <span>Middle Child Audio Forensics Lab V0</span>
+      <span>Local analysis · no proprietary-detector equivalence claim</span>
+    </footer>
+  </div>
+
+  <template id="fileCardTemplate">
+    <article class="file-card">
+      <div class="file-card-top">
+        <label class="compare-check" title="Select for before/after comparison"><input type="checkbox" class="compare-select" /></label>
+        <div class="file-title-wrap"><b class="file-name"></b><small class="file-size"></small></div>
+        <span class="status-badge">Queued</span>
+      </div>
+      <div class="file-controls">
+        <select class="role-select" aria-label="File role">
+          <option value="locked_mix">Locked stereo mix</option>
+          <option value="raw_stem">Raw generator stem</option>
+          <option value="separated_stem">Re-separated stem</option>
+          <option value="ableton_stem">Ableton-edited stem</option>
+          <option value="final_master">Final master</option>
+          <option value="human_reference">Human / MC reference</option>
+        </select>
+        <input class="stem-input" type="text" placeholder="Stem label (bass, drums, vocal...)" />
+      </div>
+      <div class="file-actions">
+        <button class="btn tiny analyze-one">Analyze</button>
+        <button class="btn tiny ghost inspect-one" disabled>Inspect</button>
+        <button class="icon-btn remove-one" title="Remove">×</button>
+      </div>
+      <div class="file-progress"><span></span></div>
+    </article>
+  </template>
+
+  <script src="./app.js"></script>
+</body>
+</html>
